@@ -51,7 +51,14 @@ class InstaSong:
         out = model.generate(**inputs)
 
         generated_text = processor.decode(out[0], skip_special_tokens=True)
-        generated_text_embeds = self.embed_text([generated_text])
+
+        response = self.co.generate(
+            prompt="generate more words to describe an image from this frase: "
+            + generated_text
+            + ". Just output the words, nothing more",
+        )
+
+        generated_text_embeds = self.embed_text(texts=[generated_text + response[0]])
 
         # self.df["lyrics_embeds"] = embed_text(self.df["lyrics"].tolist())
         embeds = np.array(self.df["lyrics_embeds"].tolist())
