@@ -2,24 +2,24 @@ import streamlit as st
 import instasong
 import spotifyapi
 
-# import operator
-# from collections import OrderedDict
+import operator
+from collections import OrderedDict
 
 
-# def sort_dict(dict1):
-#     sorted_tuples = sorted(dict1.items(), key=operator.itemgetter(1))
+def sort_dict(dict1):
+    sorted_tuples = sorted(dict1.items(), key=operator.itemgetter(1))
 
-#     sorted_dict = OrderedDict()
-#     for k, v in sorted_tuples:
-#         sorted_dict[k] = v
+    sorted_dict = OrderedDict()
+    for k, v in sorted_tuples:
+        sorted_dict[k] = v
 
-#     return sorted_dict
+    return sorted_dict
 
 
 sfapi = spotifyapi.SpotifyAPI(
     st.secrets["SPOTIFY_CLIENT_ID"], st.secrets["SPOTIFY_CLIENT_SECRET"]
 )
-isong = instasong.InstaSong("dataframe.csv", st.secrets["COHERE_API_KEY"])
+isong = instasong.InstaSong("data.csv", st.secrets["COHERE_API_KEY"])
 
 st.title("InstaSong")
 st.subheader("Get song suggestions for Instagram posts")
@@ -46,7 +46,7 @@ with form:
             # my_bar = st.progress(0.05)
             # Create a two-column view
             # songs = sort_dict(isong.process(image_url, post_text))
-            songs = isong.process(image_url, post_text)
+            songs = sort_dict(isong.process(image_url, post_text))
             print(songs)
             songs_data = sfapi.get_songs(songs.keys())
 

@@ -52,19 +52,33 @@ class InstaSong:
 
         generated_text = processor.decode(out[0], skip_special_tokens=True)
         generated_text_embeds = self.embed_text([generated_text])
-        # input_text_embeds = self.embed_text([text])
 
         # self.df["lyrics_embeds"] = embed_text(self.df["lyrics"].tolist())
         embeds = np.array(self.df["lyrics_embeds"].tolist())
 
-        similarity = self._get_similarity(generated_text_embeds, embeds)
-        # print(len(similarity))
+        similarity_generated_text = self._get_similarity(generated_text_embeds, embeds)
 
         # top 10 similarity
-        top_similarity = {}
-        for idx, score in similarity[:10]:
-            top_similarity[
+        top_generated_similarity = {}
+        for idx, score in similarity_generated_text[:5]:
+            top_generated_similarity[
                 f"{self.df.iloc[idx]['song'].lower()} - {self.df.iloc[idx]['artist'].lower()}"
-            ] = f"{score:.4f}"
+            ] = f"{score}"
 
-        return top_similarity
+        if text != "":
+            input_text_embeds = self.embed_text([text])
+            similarity_input_text = self._get_similarity(input_text_embeds, embeds)
+
+            top_input_similarity = {}
+            for idx, score in similarity_input_text[:5]:
+                top_input_similarity[
+                    f"{self.df.iloc[idx]['song'].lower()} - {self.df.iloc[idx]['artist'].lower()}"
+                ] = f"{score}"
+
+            top_generated_similarity.update(top_input_similarity)
+            print("input", top_input_similarity)
+            print("\n")
+
+        print("generated", top_generated_similarity)
+
+        return top_generated_similarity
