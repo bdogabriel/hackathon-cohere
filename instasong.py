@@ -1,99 +1,69 @@
+import pandas as pd
 import cohere
-import streamlit as st
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
-
-co = cohere.Client(st.secrets["COHERE_API_KEY"])
-
-sp = spotipy.Spotify(
-    auth_manager=SpotifyClientCredentials(
-        client_id=st.secrets["SPOTIFY_CLIENT_ID"],
-        client_secret=st.secrets["SPOTIFY_CLIENT_SECRET"],
-    )
-)
+import numpy as np
+import requests
+import json
+from ast import literal_eval
+from PIL import Image
+from transformers import BlipProcessor, BlipForConditionalGeneration
+from sklearn.metrics.pairwise import cosine_similarity
 
 
-# The front end code starts here
-def get_artists_names(song):
-    artists_names = []
-    for artist in song["artists"]:
-        artists_names.append(artist["name"])
+class InstaSong:
+    def __init__(self, dataset_name, cohere_api_key):
+        self.co = cohere.Client(cohere_api_key)
+        self.df = pd.read_csv(dataset_name, converters={"lyrics_embeds": literal_eval})
 
-    return artists_names
+    def embed_text(self, texts):
+        output = self.co.embed(model="embed-english-v2.0", texts=texts)
+        embedding = output.embeddings
 
+        return embedding
 
-def get_album_image(song):
-    return song["album"]["images"][1]["url"]
+    def _get_similarity(self, target, candidates):
+        # Turn list into array
+        candidates = np.array(candidates)
+        target = np.array(target)
 
+        # Calculate cosine similarity
+        sim = cosine_similarity(target, candidates)
+        sim = np.squeeze(sim).tolist()
 
-def get_preview(song):
-    return song["preview_url"]
+        # Sort by descending order in similarity
+        sim = list(enumerate(sim))
+        sim = sorted(sim, key=lambda x: x[1], reverse=True)
 
+        # Return similarity scores
+        return sim
 
-def get_songs(songs):
-    data = {}
-    for song in songs:
-        results = sp.search(
-            q=song, type="track", market="US", limit=1
-        )  # search song and artist
-        song_data = results["tracks"]["items"][0]
-        artists_names = get_artists_names(song_data)
-        data[f"{song_data['name'].lower()} - {artists_names[0].lower()}"] = song_data
+    def process_image(self, img_url):
+        processor = BlipProcessor.from_pretrained(
+            "Salesforce/blip-image-captioning-base"
+        )
+        model = BlipForConditionalGeneration.from_pretrained(
+            "Salesforce/blip-image-captioning-base"
+        )
 
-    return data
+        raw_image = Image.open(requests.get(img_url, stream=True).raw).convert("RGB")
 
+        # unconditional image captioning
+        inputs = processor(raw_image, return_tensors="pt")
 
-def get_popularity(songs_data):
-    songs_popularity = {}
-    for song, song_data in songs_data.items():
-        songs_popularity[songs_data[song]["name"]] = songs_data[song]["popularity"]
+        out = model.generate(**inputs)
 
-    return songs_popularity
+        generated_text = processor.decode(out[0], skip_special_tokens=True)
+        generated_text_embeds = self.embed_text([generated_text])
 
+        # self.df["lyrics_embeds"] = embed_text(self.df["lyrics"].tolist())
+        embeds = np.array(self.df["lyrics_embeds"].tolist())
 
-st.title("InstaSong")
-st.subheader("Get song suggestions for Instagram posts")
-st.markdown("")  # filler
+        similarity = self._get_similarity(generated_text_embeds, embeds)
 
-form = st.form(key="user_settings")
-with form:
-    # User input - Image URL and Post text
-    image_url = st.text_input(
-        "Image URL",
-        key="image_url",
-    )
-    post_text = st.text_area(
-        "Post Text",
-        key="post_text",
-    )
+        # top 10 similarity
+        top_similarity = {}
+        for idx, score in similarity[:10]:
+            top_similarity[
+                f"{self.df.iloc[idx]['song'].lower()} - {self.df.iloc[idx]['artist'].lower()}"
+            ] = f"{score:.2f}"
 
-    submit_button = form.form_submit_button("Get Songs")
-
-    if submit_button:
-        if image_url == "":
-            st.error("Image URL cannot be blank")
-        else:
-            # my_bar = st.progress(0.05)
-            # Create a two-column view
-            songs = {
-                "golden harry styles",
-                "flowers",
-                "yellow",
-            }  # array with searches to make (song name and artist name)
-
-            songs_data = get_songs(songs)
-            # get_popularity(songs_data)
-            for song, data in songs_data.items():
-                st.markdown("""---""")
-                col1, col2 = st.columns([1, 2])
-                with col1:
-                    artists = get_artists_names(data)
-                    display = f"<div style='display: flex; gap: 15px'><img src={get_album_image(data)} style='width: 64px; height: 64px; margin-left: 10px'><p><span style='font-size: large; font-weight: bold;'>{data['name']}</span><br>{artists[0]}</p></div>"
-                    st.write(display, unsafe_allow_html=True)
-                with col2:
-                    st.audio(get_preview(data))
-                # st.image(get_album_image(songs_data[song]))
-                # st.markdown("##### " + songs_data[song]["name"])
-                # st.write(artists[0])
-                # my_bar.progress((i + 1) / 10)
-            st.markdown("")  # filler
+        return top_similarity

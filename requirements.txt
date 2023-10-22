@@ -1,3 +1,7 @@
 streamlit
 cohere
 spotipy
+pandas
+transformers
+scikit-learn
+torch
