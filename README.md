@@ -6,6 +6,10 @@ InstaSong is an application designed to be integrated with social networks to he
 ## Use
 The user inputs the image link for what will be posted and its caption, or just the image link, and InstaSong will suggest 10 songs that can best harmonize with the post.
 
+### Interface
+Our simple and intuitive interface was made with streamlit
+![Instasong-interface-screenshot](./images/interface_screenshot.jpg)
+
 ## Behind the application
 InstaSong can be thought as a combination of steps:
 
