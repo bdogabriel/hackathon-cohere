@@ -8,6 +8,7 @@ The user inputs the image link for what will be posted and its caption, or just 
 
 ### Interface
 Our simple and intuitive interface was made with streamlit
+
 ![Instasong-interface-screenshot](./images/interface_screenshot.jpg)
 
 ## Behind the application
