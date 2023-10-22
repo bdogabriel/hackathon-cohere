@@ -2,19 +2,13 @@ import cohere
 import streamlit as st
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-import os
-from dotenv import load_dotenv
 
-load_dotenv()
-
-CLIENT_ID = os.getenv("CLIENT_ID")
-CLIENT_SECRET = os.getenv("CLIENT_SECRET")
-
-co = cohere.Client("COHERE_API_KEY")
+co = cohere.Client(st.secrets["COHERE_API_KEY"])
 
 sp = spotipy.Spotify(
     auth_manager=SpotifyClientCredentials(
-        client_id=CLIENT_ID, client_secret=CLIENT_SECRET
+        client_id=st.secrets["SPOTIFY_CLIENT_ID"],
+        client_secret=st.secrets["SPOTIFY_CLIENT_SECRET"],
     )
 )
 
