@@ -2,7 +2,6 @@ import pandas as pd
 import cohere
 import numpy as np
 import requests
-import json
 from ast import literal_eval
 from PIL import Image
 from transformers import BlipProcessor, BlipForConditionalGeneration
@@ -36,7 +35,7 @@ class InstaSong:
         # Return similarity scores
         return sim
 
-    def process_image(self, img_url):
+    def process(self, img_url, text=""):
         processor = BlipProcessor.from_pretrained(
             "Salesforce/blip-image-captioning-base"
         )
@@ -53,17 +52,19 @@ class InstaSong:
 
         generated_text = processor.decode(out[0], skip_special_tokens=True)
         generated_text_embeds = self.embed_text([generated_text])
+        # input_text_embeds = self.embed_text([text])
 
         # self.df["lyrics_embeds"] = embed_text(self.df["lyrics"].tolist())
         embeds = np.array(self.df["lyrics_embeds"].tolist())
 
         similarity = self._get_similarity(generated_text_embeds, embeds)
+        # print(len(similarity))
 
         # top 10 similarity
         top_similarity = {}
         for idx, score in similarity[:10]:
             top_similarity[
                 f"{self.df.iloc[idx]['song'].lower()} - {self.df.iloc[idx]['artist'].lower()}"
-            ] = f"{score:.2f}"
+            ] = f"{score:.4f}"
 
         return top_similarity

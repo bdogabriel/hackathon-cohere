@@ -2,12 +2,24 @@ import streamlit as st
 import instasong
 import spotifyapi
 
-# The front end code starts here
+# import operator
+# from collections import OrderedDict
+
+
+# def sort_dict(dict1):
+#     sorted_tuples = sorted(dict1.items(), key=operator.itemgetter(1))
+
+#     sorted_dict = OrderedDict()
+#     for k, v in sorted_tuples:
+#         sorted_dict[k] = v
+
+#     return sorted_dict
+
 
 sfapi = spotifyapi.SpotifyAPI(
     st.secrets["SPOTIFY_CLIENT_ID"], st.secrets["SPOTIFY_CLIENT_SECRET"]
 )
-isong = instasong.InstaSong("dataframe_pop.csv", st.secrets["COHERE_API_KEY"])
+isong = instasong.InstaSong("dataframe.csv", st.secrets["COHERE_API_KEY"])
 
 st.title("InstaSong")
 st.subheader("Get song suggestions for Instagram posts")
@@ -33,10 +45,9 @@ with form:
         else:
             # my_bar = st.progress(0.05)
             # Create a two-column view
-            songs = isong.process_image(image_url)
-
+            # songs = sort_dict(isong.process(image_url, post_text))
+            songs = isong.process(image_url, post_text)
             print(songs)
-
             songs_data = sfapi.get_songs(songs.keys())
 
             # get_popularity(songs_data)
@@ -49,8 +60,4 @@ with form:
                     st.write(display, unsafe_allow_html=True)
                 with col2:
                     st.audio(spotifyapi.SpotifyAPI.get_preview(data))
-                # st.image(get_album_image(songs_data[song]))
-                # st.markdown("##### " + songs_data[song]["name"])
-                # st.write(artists[0])
-                # my_bar.progress((i + 1) / 10)
             st.markdown("")  # filler
