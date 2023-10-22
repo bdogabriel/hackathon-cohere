@@ -17,11 +17,12 @@ InstaSong can be thought as a combination of steps:
 + User input
 + Text generation from image with
 + Combination of the generated text and the optional caption: the **source text**
-+ Embbeding between the **source text** and [our dataset](###-Our-dataset) with COHERE EMBED
++ Embbeding between the **source text** and [our dataset](###Our-dataset) with COHERE EMBED
 + Extract the songs with the greatest similarity from the embedding and filter them to a minimum of popularity
 + Display our results for the user
 
 ### Our dataset
+We got our songs from https://watsonbox.github.io/exportify/, wich came already with spotify's popularity classification
 
 ## Prerequisites
 To install all prerequisites, run
