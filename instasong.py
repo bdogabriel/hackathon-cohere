@@ -20,19 +20,19 @@ class InstaSong:
         return embedding
 
     def _get_similarity(self, target, candidates):
-        # Turn list into array
+        # turn list into array
         candidates = np.array(candidates)
         target = np.array(target)
 
-        # Calculate cosine similarity
+        # calculate cosine similarity
         sim = cosine_similarity(target, candidates)
         sim = np.squeeze(sim).tolist()
 
-        # Sort by descending order in similarity
+        # sort by descending order in similarity
         sim = list(enumerate(sim))
         sim = sorted(sim, key=lambda x: x[1], reverse=True)
 
-        # Return similarity scores
+        # return similarity scores
         return sim
 
     def process(self, img_url, text=""):
@@ -53,14 +53,15 @@ class InstaSong:
         generated_text = processor.decode(out[0], skip_special_tokens=True)
 
         response = self.co.generate(
-            prompt="generate more words to describe an image from this frase: "
+            prompt="generate a song verse about "
             + generated_text
-            + ". Just output the words, nothing more",
+            + ". Just output the text, nothing more",
         )
 
-        generated_text_embeds = self.embed_text(texts=[generated_text + response[0]])
+        print(response[0])
 
-        # self.df["lyrics_embeds"] = embed_text(self.df["lyrics"].tolist())
+        generated_text_embeds = self.embed_text(texts=[response[0]])
+
         embeds = np.array(self.df["lyrics_embeds"].tolist())
 
         similarity_generated_text = self._get_similarity(generated_text_embeds, embeds)
@@ -83,9 +84,5 @@ class InstaSong:
                 ] = f"{score}"
 
             top_generated_similarity.update(top_input_similarity)
-            print("input", top_input_similarity)
-            print("\n")
-
-        print("generated", top_generated_similarity)
 
         return top_generated_similarity
