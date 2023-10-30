@@ -1,7 +1,8 @@
-streamlit
 cohere
-spotipy
 pandas
-transformers
+python-dotenv
 scikit-learn
+spotipy
+streamlit
 torch
+transformers
