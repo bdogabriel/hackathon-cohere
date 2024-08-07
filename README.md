@@ -14,7 +14,7 @@ Our simple and intuitive interface was made with [Streamlit](https://streamlit.i
 
 ## Behind the application
 
-InstaSong can be thought as a combination of steps:
+InstaSong can be explained as a combination of steps:
 
 -   User input
 -   Song verse generation from image:
